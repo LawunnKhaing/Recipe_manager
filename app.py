@@ -23,7 +23,7 @@ class RecipeApp:
             host="localhost"
         )
         self.cur = self.conn.cursor()
-        
+
         # Create the GUI
         self.create_widgets()
     
@@ -58,7 +58,7 @@ class RecipeApp:
         recipes = self.cur.fetchall()
         for recipe in recipes:
             self.recipe_listbox.insert(tk.END, recipe[0])
-    
+
     def add_recipe(self):
         title = simpledialog.askstring("Input", "What is the recipe name?")
         cooking_time = simpledialog.askstring("Input", "What is the cooking time?")
@@ -77,6 +77,8 @@ class RecipeApp:
         else:
             messagebox.showerror("Error", "You must enter all the details for the recipe")
         pass
+
+
     
     def delete_recipe(self):
         # Implement deleting recipe functionality
