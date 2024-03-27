@@ -2,9 +2,9 @@ import psycopg2
 
 # Connect to the database
 conn = psycopg2.connect(
-    dbname="recipe_database",
-    user="your_username",
-    password="your_password",
+    dbname="recipe",
+    user="ejesi",
+    password="",
     host="localhost"
 )
 
