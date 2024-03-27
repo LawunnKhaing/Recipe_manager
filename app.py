@@ -2,15 +2,6 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import psycopg2
 
-<<<<<<< HEAD
-# Connect to the database
-conn = psycopg2.connect(
-    dbname="recipe",
-    user="ejesi",
-    password="",
-    host="localhost"
-)
-=======
 class RecipeApp:
     def __init__(self, root):
         self.root = root
@@ -30,7 +21,6 @@ class RecipeApp:
     def create_widgets(self):
         self.root.grid_columnconfigure(0, weight=1) 
         self.root.grid_rowconfigure(0, weight=1)  
->>>>>>> 67fb81106518329b864e76e414b8a9baf1649548
 
         self.recipe_listbox = tk.Listbox(self.root, width=50)
         self.recipe_listbox.grid(row=0, column=0, padx=10, pady=10, rowspan=4, sticky='nsew') 
