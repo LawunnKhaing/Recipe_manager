@@ -60,16 +60,16 @@ class RecipeApp:
             self.recipe_listbox.insert(tk.END, recipe[0])
     
     def add_recipe(self):
-        recipe_name = simpledialog.askstring("Input", "What is the recipe name?")
+        title = simpledialog.askstring("Input", "What is the recipe name?")
         cooking_time = simpledialog.askstring("Input", "What is the cooking time?")
-        category = simpledialog.askstring("Input", "What are the cooking hardwares?")
-        instructions = simpledialog.askstring("Input", "What are the instructions?")
+        instructions = simpledialog.askstring("Input", "What are the cooking hardwares?")
+        cooking_hardware = simpledialog.askstring("Input", "What are the instructions?")
 
         # Check if the user has entered all the details
-        if recipe_name and cooking_time and category:
+        if title and cooking_time and instructions and cooking_hardware:
             # Insert the new recipe into the database
             self.cur.execute("INSERT INTO recipes (title, cooking_time, instructions, cooking_hardware) VALUES (%s, %s, %s, %s)",
-                             (recipe_name, cooking_time, category, instructions))
+                             (title, cooking_time, instructions, cooking_hardware))
             self.conn.commit()
 
             # Refresh the list of recipes
