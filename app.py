@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, simpledialog
 import psycopg2
 
 class RecipeApp:
@@ -50,7 +50,22 @@ class RecipeApp:
             self.recipe_listbox.insert(tk.END, recipe[0])
     
     def add_recipe(self):
-        # Implement adding recipe functionality
+        recipe_name = simpledialog.askstring("Input", "What is the recipe name?")
+        cooking_time = simpledialog.askstring("Input", "What is the cooking time?")
+        category = simpledialog.askstring("Input", "What are the cooking hardwares?")
+        instructions = simpledialog.askstring("Input", "What are the instructions?")
+
+        # Check if the user has entered all the details
+        if recipe_name and cooking_time and category:
+            # Insert the new recipe into the database
+            self.cur.execute("INSERT INTO recipes (title, cooking_time, instructions, cooking_hardware) VALUES (%s, %s, %s, %s)",
+                             (recipe_name, cooking_time, category, instructions))
+            self.conn.commit()
+
+            # Refresh the list of recipes
+            self.refresh_recipes()
+        else:
+            messagebox.showerror("Error", "You must enter all the details for the recipe")
         pass
     
     def delete_recipe(self):
