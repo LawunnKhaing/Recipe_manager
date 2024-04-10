@@ -24,10 +24,13 @@ class RecipeApp:
     
     def create_widgets(self):
         self.root.grid_columnconfigure(0, weight=1) 
-        self.root.grid_rowconfigure(0, weight=1)  
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.resizable(True, True)
 
         self.recipe_listbox = tk.Listbox(self.root, width=50)
         self.recipe_listbox.grid(row=0, column=0, padx=10, pady=10, rowspan=4, sticky='nsew') 
+
+        self.recipe_listbox.bind('<<ListboxSelect>>', self.show_recipe_details)
         
         self.refresh_button = tk.Button(self.root, text="Refresh", command=self.refresh_recipes)
         self.refresh_button.grid(row=0, column=1, padx=10, pady=10, sticky='nsew')  
@@ -42,6 +45,8 @@ class RecipeApp:
         self.update_button.grid(row=3, column=1, padx=10, pady=10, sticky='nsew') 
         
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+        self.refresh_recipes()
     
     def refresh_recipes(self):
         # Clear the listbox
@@ -78,6 +83,7 @@ class RecipeApp:
             messagebox.showerror("Error", "You must select a recipe to delete")
             return
 
+<<<<<<< HEAD
         # Get the recipe ID of the selected recipe
         recipe_id, recipe_title = self.recipe_listbox.get(selected_index)[0], self.recipe_listbox.get(selected_index)[1]
 
@@ -126,6 +132,25 @@ class RecipeApp:
             messagebox.showinfo("Success", f"Recipe '{recipe_title}' updated successfully")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to update recipe: {str(e)}")
+=======
+    def show_recipe_details(self, event):
+        # Get the selected recipe name
+        selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
+
+        # Fetch the details of the selected recipe from the database
+        self.cur.execute("SELECT title, cooking_time, instructions, cooking_hardware FROM recipes WHERE title = %s", (selected_recipe,))
+        recipe_details = self.cur.fetchone()
+
+        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nInstructions: {recipe_details[2]}\nCooking Hardware: {recipe_details[3]}")
+        
+    def delete_recipe(self):
+        # Implement deleting recipe functionality
+        pass
+    
+    def update_recipe(self):
+        # Implement updating recipe functionality
+        pass
+>>>>>>> 56e9918 (Add view)
     
     def on_close(self):
         # Close the database connection
