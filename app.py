@@ -58,14 +58,15 @@ class RecipeApp:
     def add_recipe(self):
         title = simpledialog.askstring("Input", "What is the recipe name?")
         cooking_time = simpledialog.askstring("Input", "What is the cooking time?")
+        ingredients = simpledialog.askstring("Input", "What are the ingredients?")
         instructions = simpledialog.askstring("Input", "What are the cooking hardwares?")
         cooking_hardware = simpledialog.askstring("Input", "What are the instructions?")
 
         # Check if the user has entered all the details
-        if title and cooking_time and instructions and cooking_hardware:
+        if title and cooking_time and ingredients and instructions and cooking_hardware:
             # Insert the new recipe into the database
-            self.cur.execute("INSERT INTO recipes (title, cooking_time, instructions, cooking_hardware) VALUES (%s, %s, %s, %s)",
-                             (title, cooking_time, instructions, cooking_hardware))
+            self.cur.execute("INSERT INTO recipes (title, cooking_time,ingredients, instructions, cooking_hardware) VALUES (%s, %s, %s, %s, %s)",
+                             (title, cooking_time, ingredients, instructions, cooking_hardware))
             self.conn.commit()
 
             # Refresh the list of recipes
@@ -80,10 +81,10 @@ class RecipeApp:
         selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
 
         # Fetch the details of the selected recipe from the database
-        self.cur.execute("SELECT title, cooking_time, instructions, cooking_hardware FROM recipes WHERE title = %s", (selected_recipe,))
+        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware FROM recipes WHERE title = %s", (selected_recipe,))
         recipe_details = self.cur.fetchone()
 
-        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nInstructions: {recipe_details[2]}\nCooking Hardware: {recipe_details[3]}")
+        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nIngrediets: {recipe_details[2]}\nInstructions: {recipe_details[3]}\nCooking Hardware: {recipe_details[4]}")
         
     def delete_recipe(self):
         # Get the selected recipe name
