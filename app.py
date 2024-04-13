@@ -189,6 +189,27 @@ class RecipeApp:
                              (updated_title, updated_cooking_time, updated_ingredients, updated_instructions, updated_cooking_hardware, selected_recipe))
             self.conn.commit()
 
+
+            self.cur.execute("SELECT id FROM recipes WHERE title = %s", (updated_title,))
+            recipe_id = self.cur.fetchone()[0]
+
+            # Split updated ingredients string and update ingredients table
+            for ingredient in updated_ingredients.split(","):
+                ingredient = ingredient.strip()  # Remove leading/trailing whitespace
+
+            # Check if the ingredient already exists in the ingredients table
+            self.cur.execute("SELECT id FROM ingredients WHERE name = %s AND recipe_id = %s", (ingredient, recipe_id))
+            existing_ingredient = self.cur.fetchone()
+
+            if not existing_ingredient:
+                # Insert the ingredient into the ingredients table
+                self.cur.execute("INSERT INTO ingredients (name, recipe_id) VALUES (%s, %s)", (ingredient, recipe_id))
+            else:
+                # Update the ingredient in the ingredients table
+                self.cur.execute("UPDATE ingredients SET name = %s WHERE id = %s", (ingredient, existing_ingredient[0]))
+
+            self.conn.commit()
+
             # Refresh the list of recipes
             self.refresh_recipes()
 
