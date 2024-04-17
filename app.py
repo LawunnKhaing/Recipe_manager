@@ -35,21 +35,24 @@ class RecipeApp:
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         # Place the buttons in the navigation bar
-        self.search_button = tk.Button(self.navbar, text="Search by ingredients", command=self.search_recipes)
+        self.search_button = tk.Button(self.navbar, text="Search by ingredients", command=self.search_recipes_by_ingredient)
         self.search_button.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
+        self.search_button = tk.Button(self.navbar, text="Search by category", command=self.search_recipes_by_category)
+        self.search_button.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
         self.refresh_button = tk.Button(self.navbar, text="Refresh", command=self.refresh_recipes)
-        self.refresh_button.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.refresh_button.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.add_button = tk.Button(self.navbar, text="Add Recipe", command=self.add_recipe)
-        self.add_button.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.add_button.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.delete_button = tk.Button(self.navbar, text="Delete Recipe", command=self.delete_recipe)
-        self.delete_button.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.delete_button.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         # Place the update button in the navigation bar
         self.update_button = tk.Button(self.navbar, text="Update Recipe", command=self.update_recipe)
-        self.update_button.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")
+        self.update_button.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
 
         self.recipe_listbox = tk.Listbox(self.root, width=50)
         self.recipe_listbox.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
@@ -59,7 +62,7 @@ class RecipeApp:
 
         self.refresh_recipes()
 
-    def search_recipes(self):
+    def search_recipes_by_ingredient(self):
         # Get the ingredient to search for
         search_ingredient = self.search_var.get()
 
@@ -85,6 +88,33 @@ class RecipeApp:
             messagebox.showinfo("Search Results", "No recipes found with that ingredient.")
 
         # Refresh the recipes list if the search field is empty
+        self.refresh_recipes()
+
+    def search_recipes_by_category(self):
+
+        # Get the category to search for
+        search_category = self.search_var.get()
+
+        # Clear the listbox
+        self.recipe_listbox.delete(0, tk.END)
+
+        # Check if the search entry is not empty
+        if search_category:
+        # Fetch recipes from the database that are in the specified category
+            self.cur.execute("""
+                SELECT r.title
+                FROM recipes r
+                WHERE r.category = %s
+                """, (search_category,))
+            recipes = self.cur.fetchall()
+
+        # Check if any recipes were found
+        if recipes:
+            for recipe in recipes:
+                self.recipe_listbox.insert(tk.END, recipe[0])
+        else:
+            messagebox.showinfo("Search Results", "No recipes found in that category.")
+
         self.refresh_recipes()
 
 
@@ -215,6 +245,7 @@ class RecipeApp:
             ingredients_entry.insert(tk.END, recipe_details[2])
         instructions_entry.insert(tk.END, recipe_details[3])
         cooking_hardware_entry.insert(tk.END, recipe_details[4])
+        category_entry.insert(tk.END, recipe_details[5])
 
         def update_recipe_details():
             # Get the updated recipe details from the entry fields
