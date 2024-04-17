@@ -10,7 +10,7 @@ class RecipeApp:
         # Connect to the database
         self.conn = psycopg2.connect(
             dbname="recipe",
-            user="ejesi",
+            user="postgres",
             host="localhost"
         )
         self.cur = self.conn.cursor()
@@ -94,9 +94,6 @@ class RecipeApp:
         else:
             messagebox.showinfo("Search Results", "No recipes found with that ingredient.")
 
-        # Refresh the recipes list if the search field is empty
-        self.refresh_recipes()
-
     def search_recipes_by_category(self):
 
         # Get the category to search for
@@ -121,9 +118,6 @@ class RecipeApp:
                 self.recipe_listbox.insert(tk.END, recipe[0])
         else:
             messagebox.showinfo("Search Results", "No recipes found in that category.")
-
-        self.refresh_recipes()
-
 
     def refresh_recipes(self):
         # Clear the listbox
