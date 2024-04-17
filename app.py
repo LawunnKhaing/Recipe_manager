@@ -10,7 +10,7 @@ class RecipeApp:
         # Connect to the database
         self.conn = psycopg2.connect(
             dbname="recipe",
-            user="postgres",
+            user="ejesi",
             host="localhost"
         )
         self.cur = self.conn.cursor()
@@ -137,7 +137,7 @@ class RecipeApp:
 
     def add_recipe(self):
        title = simpledialog.askstring("Input", "What is the recipe name?")
-       cooking_time = simpledialog.askstring("Input", "What is the cooking time?")
+       cooking_time = simpledialog.askstring("Input", "What is the cooking time in minutes?")
        ingredients_input = simpledialog.askstring("Input", "What are the ingredients?")
        instructions = simpledialog.askstring("Input", "What are the instructions?")
        cooking_hardware = simpledialog.askstring("Input", "What are the cooking hardwares?")
@@ -168,14 +168,36 @@ class RecipeApp:
 
 
     def show_recipe_details(self, event):
-        # Get the selected recipe name
-        selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
+       # Get the selected recipe name
+       selected_index = self.recipe_listbox.curselection()
+       if not selected_index:
+          return
+       selected_recipe = self.recipe_listbox.get(selected_index)
 
-        # Fetch the details of the selected recipe from the database
-        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware, category FROM recipes WHERE title = %s", (selected_recipe,))
-        recipe_details = self.cur.fetchone()
+       # Fetch the details of the selected recipe from the database
+       self.cur.execute("""
+       SELECT title, cooking_time, ingredients, instructions, cooking_hardware, category
+       FROM recipes
+       WHERE title = %s""", (selected_recipe,))
+       recipe_details = self.cur.fetchone()
 
-        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nIngredients: {recipe_details[2]}\nInstructions: {recipe_details[3]}\nCooking Hardware: {recipe_details[4]}\nCategory: {recipe_details[5]}")
+       # Display basic recipe details
+       recipe_info = f"Title: {recipe_details[0]}\n\nCooking Time: {recipe_details[1]}\n\nIngredients: {recipe_details[2]}\n\nInstructions: {recipe_details[3]}\n\nCooking Hardware: {recipe_details[4]}\n\nCategory: {recipe_details[5]}"
+
+       # Check for allergens in the ingredients
+       allergen_warning = ""
+       ingredients = recipe_details[2].split(',')
+       for ingredient in ingredients:
+           ingredient = ingredient.strip()
+           self.cur.execute("SELECT allergens FROM ingredients WHERE name = %s", (ingredient,))
+           result = self.cur.fetchone()
+           if result and result[0]:
+                allergen_warning += f"\n\nWarning: {ingredient} contains allergens {result[0]}"
+
+       if allergen_warning:
+           recipe_info += allergen_warning
+
+       messagebox.showinfo("Recipe Details", recipe_info)
 
     def reset_sequence(self, table_name):
     # Find the minimum available ID that is not currently in use
@@ -346,10 +368,10 @@ class RecipeApp:
                 messagebox.showerror("Error", "The specified ingredient does not exist.")
 
         ok_button = tk.Button(allergen_window, text="OK", command=add_allergen_to_ingredient)
-        ok_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+        ok_button.grid(row=2, column=0, padx=10, pady=10)
 
         cancel_button = tk.Button(allergen_window, text="Cancel", command=allergen_window.destroy)  
-        cancel_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+        cancel_button.grid(row=2, column=1, padx=10, pady=10)
 
     def on_close(self):
         # Close the database connection
