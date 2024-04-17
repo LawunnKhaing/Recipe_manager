@@ -35,7 +35,7 @@ class RecipeApp:
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         # Place the buttons in the navigation bar
-        self.search_button = tk.Button(self.navbar, text="Search", command=self.search_recipes)
+        self.search_button = tk.Button(self.navbar, text="Search by ingredients", command=self.search_recipes)
         self.search_button.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.refresh_button = tk.Button(self.navbar, text="Refresh", command=self.refresh_recipes)
@@ -60,7 +60,33 @@ class RecipeApp:
         self.refresh_recipes()
 
     def search_recipes(self):
-        pass
+        # Get the ingredient to search for
+        search_ingredient = self.search_var.get()
+
+    # Clear the listbox
+        self.recipe_listbox.delete(0, tk.END)
+
+    # Check if the search entry is not empty
+        if search_ingredient:
+        # Fetch recipes from the database that have the specified ingredient
+            self.cur.execute("""
+                SELECT r.title
+                FROM recipes r
+                INNER JOIN ingredients i ON r.id = i.recipe_id
+                WHERE i.name = %s
+                """, (search_ingredient,))
+            recipes = self.cur.fetchall()
+
+        # Check if any recipes were found
+        if recipes:
+            for recipe in recipes:
+                self.recipe_listbox.insert(tk.END, recipe[0])
+        else:
+            messagebox.showinfo("Search Results", "No recipes found with that ingredient.")
+
+        # Refresh the recipes list if the search field is empty
+        self.refresh_recipes()
+
 
     def refresh_recipes(self):
         # Clear the listbox
@@ -79,12 +105,13 @@ class RecipeApp:
        instructions = simpledialog.askstring("Input", "What are the instructions?")
        cooking_hardware = simpledialog.askstring("Input", "What are the cooking hardwares?")
 
-       # Check if the user has entered all the details
+ 
        if title and cooking_time and ingredients_input and instructions and cooking_hardware:
            # Insert the new recipe into the recipes table
-           self.cur.execute("INSERT INTO recipes (title, cooking_time, instructions, cooking_hardware) VALUES (%s, %s, %s, %s) RETURNING id",
-                            (title, cooking_time, instructions, cooking_hardware))
+           self.cur.execute("INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                            (title, cooking_time, ingredients_input, instructions, cooking_hardware))
            recipe_id = self.cur.fetchone()[0]  # Get the ID of the inserted recipe
+
            
            # Split ingredients string and insert into ingredients table
            for ingredient in ingredients_input.split(","):
@@ -102,8 +129,7 @@ class RecipeApp:
 
            # Refresh the list of recipes
            self.refresh_recipes()
-       else:
-           messagebox.showerror("Error", "You must enter all the details for the recipe")
+
 
     def show_recipe_details(self, event):
         # Get the selected recipe name
@@ -123,8 +149,16 @@ class RecipeApp:
         confirmation = messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete the recipe '{selected_recipe}'?")
 
         if confirmation:
-            # Delete the recipe from the database
-            self.cur.execute("DELETE FROM recipes WHERE title = %s", (selected_recipe,))
+        # Get the ID of the recipe to be deleted
+            self.cur.execute("SELECT id FROM recipes WHERE title = %s", (selected_recipe,))
+            recipe_id = self.cur.fetchone()[0]
+
+        # Delete the ingredients of the recipe from the ingredients table
+            self.cur.execute("DELETE FROM ingredients WHERE recipe_id = %s", (recipe_id,))
+
+        # Delete the recipe from the recipes table
+            self.cur.execute("DELETE FROM recipes WHERE id = %s", (recipe_id,))
+        
             self.conn.commit()
 
             # Refresh the list of recipes
