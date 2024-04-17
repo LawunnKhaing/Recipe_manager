@@ -15,6 +15,8 @@ class RecipeApp:
         )
         self.cur = self.conn.cursor()
 
+        self.cur.execute("CREATE SEQUENCE IF NOT EXISTS recipe_id_seq")
+        self.cur.execute("CREATE SEQUENCE IF NOT EXISTS ingredient_id_seq")
         # Create the GUI
         self.create_widgets()
 
@@ -54,9 +56,14 @@ class RecipeApp:
         self.update_button = tk.Button(self.navbar, text="Update Recipe", command=self.update_recipe)
         self.update_button.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
 
+        self.add_allergen_button = tk.Button(self.navbar, text="Add Allergen to Ingredient", command=self.add_allergen)
+        self.add_allergen_button.grid(row=0, column=7, padx=10, pady=10, sticky="nsew")
+
         self.recipe_listbox = tk.Listbox(self.root, width=50)
         self.recipe_listbox.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         self.recipe_listbox.bind('<<ListboxSelect>>', self.show_recipe_details)
+
+
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
@@ -136,30 +143,28 @@ class RecipeApp:
        cooking_hardware = simpledialog.askstring("Input", "What are the cooking hardwares?")
        category = simpledialog.askstring("Input", "What is the category?")
 
- 
-       if title and cooking_time and ingredients_input and instructions and cooking_hardware and category:
-           # Insert the new recipe into the recipes table
-           self.cur.execute("INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware, category) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
-                            (title, cooking_time, ingredients_input, instructions, cooking_hardware, category))
-           recipe_id = self.cur.fetchone()[0]  # Get the ID of the inserted recipe
+    
+       self.cur.execute("INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware, category) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                       (title, cooking_time, ingredients_input, instructions, cooking_hardware, category))
+       recipe_id = self.cur.fetchone()[0]  # Get the ID of the inserted recipe
 
            
            # Split ingredients string and insert into ingredients table
-           for ingredient in ingredients_input.split(","):
-               ingredient = ingredient.strip()  # Remove leading/trailing whitespace
+       for ingredient in ingredients_input.split(","):
+            ingredient = ingredient.strip()  # Remove leading/trailing whitespace
                
                # Check if the ingredient already exists in the ingredients table
-               self.cur.execute("SELECT id FROM ingredients WHERE name = %s", (ingredient,))
-               existing_ingredient = self.cur.fetchone()
+            self.cur.execute("SELECT id FROM ingredients WHERE name = %s", (ingredient,))
+            existing_ingredient = self.cur.fetchone()
                
-               if not existing_ingredient:
-                   # Insert the ingredient into the ingredients table
-                   self.cur.execute("INSERT INTO ingredients (name, recipe_id) VALUES (%s, %s)", (ingredient, recipe_id))
+            if not existing_ingredient:
+                # Insert the ingredient into the ingredients table
+                self.cur.execute("INSERT INTO ingredients (name, recipe_id) VALUES (%s, %s)", (ingredient, recipe_id))
            
-           self.conn.commit()
+            self.conn.commit()
 
-           # Refresh the list of recipes
-           self.refresh_recipes()
+            # Refresh the list of recipes
+            self.refresh_recipes()
 
 
     def show_recipe_details(self, event):
@@ -171,6 +176,15 @@ class RecipeApp:
         recipe_details = self.cur.fetchone()
 
         messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nIngredients: {recipe_details[2]}\nInstructions: {recipe_details[3]}\nCooking Hardware: {recipe_details[4]}\nCategory: {recipe_details[5]}")
+
+    def reset_sequence(self, table_name):
+    # Find the minimum available ID that is not currently in use
+        self.cur.execute(f"SELECT COALESCE((SELECT MIN(id) FROM generate_series(1, (SELECT MAX(id) FROM {table_name})) AS s LEFT JOIN {table_name} t ON s = t.id WHERE t.id IS NULL), 1)")
+        next_id = self.cur.fetchone()[0]
+    
+    # Reset the sequence for the specified table
+        self.cur.execute(f"SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), {next_id}, false)")
+        self.conn.commit()
 
     def delete_recipe(self):
         # Get the selected recipe name
@@ -191,6 +205,9 @@ class RecipeApp:
             self.cur.execute("DELETE FROM recipes WHERE id = %s", (recipe_id,))
         
             self.conn.commit()
+
+            self.reset_sequence("recipes")
+            self.reset_sequence("ingredients")
 
             # Refresh the list of recipes
             self.refresh_recipes()
@@ -291,6 +308,48 @@ class RecipeApp:
         # Create the update button
         update_button = tk.Button(update_window, text="Update", command=update_recipe_details)
         update_button.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
+
+    def add_allergen(self):
+        # Create a new window for adding allergens
+        allergen_window = tk.Toplevel(self.root)
+        allergen_window.title("Add Allergen to Ingredient")
+
+        # Create labels and entry fields for the allergen details
+        ingredient_label = tk.Label(allergen_window, text="Ingredient:")
+        ingredient_label.grid(row=0, column=0, padx=10, pady=10)
+        ingredient_entry = tk.Entry(allergen_window)
+        ingredient_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        allergen_label = tk.Label(allergen_window, text="Allergen:")
+        allergen_label.grid(row=1, column=0, padx=10, pady=10)
+        allergen_entry = tk.Entry(allergen_window)
+        allergen_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        def add_allergen_to_ingredient():
+
+            ingredient_name = ingredient_entry.get().strip()
+            allergen_name = allergen_entry.get().strip()
+
+            # Fetch the details of the selected ingredient from the database
+            self.cur.execute("SELECT allergens FROM ingredients WHERE name = %s", (ingredient_name,))
+            ingredient = self.cur.fetchone()
+
+            if ingredient:
+               # Append the new allergen information to the existing allergens
+                existing_allergens = ingredient[0] or ''
+                new_allergens = existing_allergens + (', ' if existing_allergens else '') + allergen_name
+                self.cur.execute("UPDATE ingredients SET allergens = %s WHERE name = %s",
+                            (new_allergens, ingredient_name))
+                self.conn.commit()
+                messagebox.showinfo("Success", f"Allergen '{allergen_name}' added successfully to the ingredient '{ingredient_name}'.")
+            else:
+                messagebox.showerror("Error", "The specified ingredient does not exist.")
+
+        ok_button = tk.Button(allergen_window, text="OK", command=add_allergen_to_ingredient)
+        ok_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
+
+        cancel_button = tk.Button(allergen_window, text="Cancel", command=allergen_window.destroy)  
+        cancel_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
     def on_close(self):
         # Close the database connection
