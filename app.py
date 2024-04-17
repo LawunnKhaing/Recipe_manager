@@ -259,7 +259,7 @@ class RecipeApp:
 
         # Create the update button
         update_button = tk.Button(update_window, text="Update", command=update_recipe_details)
-        update_button.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
+        update_button.grid(row=6, column=0, columnspan=2, padx=10, pady=10)
 
     def on_close(self):
         # Close the database connection
