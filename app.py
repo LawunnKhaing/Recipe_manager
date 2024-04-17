@@ -104,12 +104,13 @@ class RecipeApp:
        ingredients_input = simpledialog.askstring("Input", "What are the ingredients?")
        instructions = simpledialog.askstring("Input", "What are the instructions?")
        cooking_hardware = simpledialog.askstring("Input", "What are the cooking hardwares?")
+       category = simpledialog.askstring("Input", "What is the category?")
 
  
-       if title and cooking_time and ingredients_input and instructions and cooking_hardware:
+       if title and cooking_time and ingredients_input and instructions and cooking_hardware and category:
            # Insert the new recipe into the recipes table
-           self.cur.execute("INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware) VALUES (%s, %s, %s, %s, %s) RETURNING id",
-                            (title, cooking_time, ingredients_input, instructions, cooking_hardware))
+           self.cur.execute("INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware, category) VALUES (%s, %s, %s, %s, %s, %s) RETURNING id",
+                            (title, cooking_time, ingredients_input, instructions, cooking_hardware, category))
            recipe_id = self.cur.fetchone()[0]  # Get the ID of the inserted recipe
 
            
@@ -136,10 +137,10 @@ class RecipeApp:
         selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
 
         # Fetch the details of the selected recipe from the database
-        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware FROM recipes WHERE title = %s", (selected_recipe,))
+        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware, category FROM recipes WHERE title = %s", (selected_recipe,))
         recipe_details = self.cur.fetchone()
 
-        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nIngredients: {recipe_details[2]}\nInstructions: {recipe_details[3]}\nCooking Hardware: {recipe_details[4]}")
+        messagebox.showinfo("Recipe Details", f"Title: {recipe_details[0]}\nCooking Time: {recipe_details[1]}\nIngredients: {recipe_details[2]}\nInstructions: {recipe_details[3]}\nCooking Hardware: {recipe_details[4]}\nCategory: {recipe_details[5]}")
 
     def delete_recipe(self):
         # Get the selected recipe name
@@ -195,11 +196,16 @@ class RecipeApp:
         cooking_hardware_entry = tk.Entry(update_window)
         cooking_hardware_entry.grid(row=4, column=1, padx=10, pady=10)
 
+        category_label = tk.Label(update_window, text="Category:")
+        category_label.grid(row=5, column=0, padx=10, pady=10)
+        category_entry = tk.Entry(update_window)
+        category_entry.grid(row=5, column=1, padx=10, pady=10)
+
         # Get the selected recipe name
         selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
 
         # Fetch the details of the selected recipe from the database
-        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware FROM recipes WHERE title = %s", (selected_recipe,))
+        self.cur.execute("SELECT title, cooking_time, ingredients, instructions, cooking_hardware, category FROM recipes WHERE title = %s", (selected_recipe,))
         recipe_details = self.cur.fetchone()
 
         # Set the initial values of the entry fields to the current recipe details
@@ -217,10 +223,11 @@ class RecipeApp:
             updated_ingredients = ingredients_entry.get()
             updated_instructions = instructions_entry.get()
             updated_cooking_hardware = cooking_hardware_entry.get()
+            updated_category = category_entry.get()
 
             # Update the recipe in the database
-            self.cur.execute("UPDATE recipes SET title = %s, cooking_time = %s, ingredients = %s, instructions = %s, cooking_hardware = %s WHERE title = %s",
-                             (updated_title, updated_cooking_time, updated_ingredients, updated_instructions, updated_cooking_hardware, selected_recipe))
+            self.cur.execute("UPDATE recipes SET title = %s, cooking_time = %s, ingredients = %s, instructions = %s, cooking_hardware = %s , category = %s WHERE title = %s",
+                             (updated_title, updated_cooking_time, updated_ingredients, updated_instructions, updated_cooking_hardware, updated_category, selected_recipe))
             self.conn.commit()
 
 
