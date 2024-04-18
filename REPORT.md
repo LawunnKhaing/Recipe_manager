@@ -1,6 +1,6 @@
 # The Final Project of Databases: Food Recipe Management System
 
-Lawunn Khaing, Jesse Sillman, Huy Tran, Tran Truong (ITMI22SP)
+Created by: Lawunn Khaing, Jesse Sillman, Huy Tran, Tran Truong (ITMI22SP)
 
 # Introduction
 
