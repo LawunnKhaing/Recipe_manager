@@ -10,7 +10,7 @@ class RecipeApp:
         # Connect to the database
         self.conn = psycopg2.connect(
             dbname="recipe",
-            user="postgres",
+            user="ejesi",
             host="localhost"
         )
         self.cur = self.conn.cursor()
