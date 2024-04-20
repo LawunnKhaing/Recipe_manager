@@ -59,7 +59,7 @@ As we can see, the table holds the following columns:
 This table has its own primary key, `id`, and a foreign key. `recipes_id`, which establishes a many-to-one relationship with the `recipes` table since each recipe can have multiple ingredients.
 
 ## ER-Diagram 
-Recipe ||--o{ Ingredient : contains
+    Recipe ||--o{ Ingredient : contains
     Recipe {
         int id
         text title
