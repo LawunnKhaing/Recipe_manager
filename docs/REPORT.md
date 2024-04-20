@@ -1,16 +1,45 @@
+---
+title: Food Recipe Management System
+output: 
+  pdf_document:
+    latex_engine: pdflatex
+    toc: true
+    toc_depth: 2
+    number_sections: true
+geometry: margin=1in
+fontsize: 11pt
+linestretch: 1.2
+---
+
 # The Final Project of Databases: Food Recipe Management System
 
 Created by: Lawunn Khaing, Jesse Sillman, Huy Tran, Tran Truong (ITMI22SP)
 
-# Introduction
+## Introduction
 
 This report examines the application of SQL in structuring relational databases via PostgreSQL, complemented by a Python-based graphical user interface (GUI) to facilitate user interaction with the database. The application's purpiose is to catalog recipes along with their necessary ingredients, cooking hardware, and categories. This system not only allows for the storage and retrieval of recipe data but also supports features like recipe updating, deletion, and advanced searching capabilities based on ingredients and categories.
 
-# Database Schema Overview
+## Table of Contents
+
+1. [Database Schema Overview](#database-schema-overview)
+   - [Recipes Table](#recipes-table)
+   - [Ingredients Table](#ingredients-table)
+   - [ER-Diagram](#er-diagram)
+2. [SQL Commands and Queries with Python](#sql-commands-and-queries-with-python)
+   - [Searching Recipes by Ingredient](#searching-recipes-by-ingredient)
+   - [Searching Recipes by Category](#searching-recipes-by-category)
+   - [Refresing Recipes](#refresing-recipes)
+   - [Add Recipe](#add-recipe)
+   - [Delete Recipe](#delete-recipe)
+   - [Update Recipe](#update-recipe)
+   - [Add Allergen to an Ingredient](#add-allergen-to-an-ingredient)
+   - [Displaying Allergens in a Warning](#displaying-allergens-in-a-warning)
+   
+## Database Schema Overview
 
 The database for the Recipe Management System consists of two main tables: `recipes` and `ìngredients`. These tables were created store and manage recipes and their ingredients effectively.
 
-## Recipes Table
+### Recipes Table
 
 The `recipes` table serves as the core of the Recipe Management System. The following SQL Query was used to create the table:
 
@@ -36,7 +65,7 @@ As we can see, the table holds the following columns:
 - `cooking_hardware`: Any equipment needed to prepare the recipe.
 - `category`: The classification of the recipe (e.g. desssert).
 
-## Ingredients Table
+### Ingredients Table
 
 The `ingredients` table is linked to the `recipes` table through a foreign key relationship. The following SQL Query was used to create the table:
 
@@ -58,16 +87,16 @@ As we can see, the table holds the following columns:
 
 This table has its own primary key, `id`, and a foreign key. `recipes_id`, which establishes a many-to-one relationship with the `recipes` table since each recipe can have multiple ingredients.
 
-## ER-Diagram 
+### ER-Diagram 
   ![ER Diagram](./docs/er-diagram.png)
 
 
 
-# SQL Commands and Queries with Python
+## SQL Commands and Queries with Python
 
 This part covers the SQL commands and queries used within the Pyton code to interact with the PostgreSQL database and manage data within the Recipe Manage System GUI.
 
-## Searching Recipes by Ingredient
+### Searching Recipes by Ingredient
 
 The following query retrieves the titles of recipes from `recipes` table where ingredients match a specified ingredient:
 
@@ -87,7 +116,7 @@ Here's the breakdown of the query:
 
 **Note: In Python programming, `%s` is a placeholder used in SQL queries to represent a value that will be provided later due to prevent SQL injection attacks and to make the code more readable and maintainable.**
 
-## Searching Recipes by Category
+### Searching Recipes by Category
 
 To search recipes based on their category, we utilized a SQL query similar to the one used for ingredient-based searching, as following:
 
@@ -99,7 +128,7 @@ WHERE r.category = %s;
 
 This query retrieves the titles from the `recipes` table where the category matches a specified category value.
 
-## Refresing Recipes
+### Refresing Recipes
 
 The following method refreshes the recipe listbox by clearing its contents and fetching all recipe titles from the database:
 
@@ -107,7 +136,7 @@ The following method refreshes the recipe listbox by clearing its contents and f
 SELECT title FROM recipes
 ```
 
-## Add Recipe
+### Add Recipe
 
 The following SQL query inserts a new recipe into the `recipes` table with the provided details and returns the ID of the inserted recipe:
 
@@ -123,7 +152,7 @@ Here's the breakdown of the query:
 - `VALUES (%s, %s, %s, %s, %s, %s)`: Defines that we are providing values for each of the columns listed above.
 - `RETURNING id`: This clause is used to return the ID of the newly inserted row.
 
-## Delete Recipe
+### Delete Recipe
 
 To delete a recipe, we typically use the DELETE statement:
 
@@ -136,7 +165,7 @@ Here's the breakdown of the query:
 - `DELETE FROM recipes`: Specifies that we are deleting data from the `recipes` table.
 - `WHERE title = %s`: Inserts a condition that filters the rows to be deleted, targeting the recipe with a specific title.
 
-## Update Recipe
+### Update Recipe
 
 To update a recipe, we typically use the UPDATE statement:
 
@@ -157,7 +186,7 @@ Here's the breakdown of the query:
 - `SET`: Specifies the columns the user wants to update.
 - `WHERE title = %s`: Specifies the condition for which rows should be updated. In this case, it updates the rows where the `title` matches the specified value.
 
-## Add Allergen to an Ingredient
+### Add Allergen to an Ingredient
 
 To add an allergen to an existing ingredient in the `ingredients` table, we can use the UPDATE statement similarly to update a recipe:
 
@@ -167,7 +196,7 @@ SET allergens = %s
 WHERE name = %s;
 ```
 
-## Displaying Allergens in a Warning
+### Displaying Allergens in a Warning
 
 To display allergens in a warning message, we can use the following SQL query:
 
