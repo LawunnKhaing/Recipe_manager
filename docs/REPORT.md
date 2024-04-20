@@ -59,7 +59,7 @@ As we can see, the table holds the following columns:
 This table has its own primary key, `id`, and a foreign key. `recipes_id`, which establishes a many-to-one relationship with the `recipes` table since each recipe can have multiple ingredients.
 
 ## ER-Diagram 
-  ![ER Diagram](./doc/er-diagram.png)
+  ![ER Diagram](./docs/er-diagram.png)
 
 
 
@@ -183,3 +183,7 @@ Here's the breakdown of the query:
 
 For each ingredient in the recipe, the application checks if there are any associated allergens. If an ingredient is found to have allergens, the application appends a warning to the recipe details.
 
+---
+
+This document was created from the `docs/REPORT.md` from this
+[github repository](https://github.com/LawunnKhaing/Recipe_manager/tree/main).
