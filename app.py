@@ -35,27 +35,31 @@ class RecipeApp:
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         # Place the buttons in the navigation bar
+
+        self.search_button = tk.Button(self.navbar, text="Search by recipe", command=self.search_by_recipe)
+        self.search_button.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
         self.search_button = tk.Button(self.navbar, text="Search by ingredients", command=self.search_recipes_by_ingredient)
-        self.search_button.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.search_button.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.search_button = tk.Button(self.navbar, text="Search by category", command=self.search_recipes_by_category)
-        self.search_button.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+        self.search_button.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")
 
         self.refresh_button = tk.Button(self.navbar, text="Refresh", command=self.refresh_recipes)
-        self.refresh_button.grid(row=0, column=3, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.refresh_button.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.add_button = tk.Button(self.navbar, text="Add Recipe", command=self.add_recipe)
-        self.add_button.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.add_button.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         self.delete_button = tk.Button(self.navbar, text="Delete Recipe", command=self.delete_recipe)
-        self.delete_button.grid(row=0, column=5, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+        self.delete_button.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
 
         # Place the update button in the navigation bar
         self.update_button = tk.Button(self.navbar, text="Update Recipe", command=self.update_recipe)
-        self.update_button.grid(row=0, column=6, padx=10, pady=10, sticky="nsew")
+        self.update_button.grid(row=0, column=7, padx=10, pady=10, sticky="nsew")
 
         self.add_allergen_button = tk.Button(self.navbar, text="Add Allergen to Ingredient", command=self.add_allergen)
-        self.add_allergen_button.grid(row=0, column=7, padx=10, pady=10, sticky="nsew")
+        self.add_allergen_button.grid(row=0, column=8, padx=10, pady=10, sticky="nsew")
 
         self.recipe_listbox = tk.Listbox(self.root, width=50)
         self.recipe_listbox.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
@@ -64,6 +68,18 @@ class RecipeApp:
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
         self.refresh_recipes()
+
+    def search_by_recipe(self):
+        search_recipe = self.search_var.get()
+        self.recipe_listbox.delete(0, tk.END)
+
+        if search_recipe:
+            self.cur.execute("SELECT title FROM recipes WHERE title = %s", (search_recipe,))
+            recipe = self.cur.fetchone()
+            if recipe:
+                self.recipe_listbox.insert(tk.END, recipe[0])
+            else:
+                messagebox.showinfo("Search Results", "No recipes found with that name.")
 
     def search_recipes_by_ingredient(self):
         # Get the ingredient to search for
@@ -251,8 +267,42 @@ class RecipeApp:
         self.refresh_recipes()
 
     def update_recipe(self):
-        # Not implemented in this version
-        pass
+    # Get the selected recipe name
+        selected_recipe = self.recipe_listbox.get(self.recipe_listbox.curselection())
+    
+    # Fetch the ID of the selected recipe
+        self.cur.execute("SELECT id FROM recipes WHERE title = %s", (selected_recipe,))
+        recipe_id = self.cur.fetchone()
+        if not recipe_id:
+            messagebox.showerror("Error", "Selected recipe not found.")
+            return
+        recipe_id = recipe_id[0]
+
+    # Prompt the user to enter updated details
+        updated_title = simpledialog.askstring("Input", "Enter updated recipe name:")
+        updated_cooking_time = simpledialog.askstring("Input", "Enter updated cooking time in minutes:")
+        updated_instructions = simpledialog.askstring("Input", "Enter updated instructions:")
+        updated_category = simpledialog.askstring("Input", "Enter updated category:")
+
+    # Check if the updated category already exists in the database, if not, insert it
+        self.cur.execute("SELECT id FROM categories WHERE name = %s", (updated_category,))
+        category_id = self.cur.fetchone()
+        if not category_id:
+            self.cur.execute("INSERT INTO categories (name) VALUES (%s) RETURNING id", (updated_category,))
+            category_id = self.cur.fetchone()[0]
+        else:
+            category_id = category_id[0]
+
+    # Update the recipe details in the database
+        try:
+            self.cur.execute("UPDATE recipes SET title = %s, cooking_time = %s, instructions = %s, category_id = %s WHERE id = %s",
+                         (updated_title, updated_cooking_time, updated_instructions, category_id, recipe_id))
+            self.conn.commit()
+            messagebox.showinfo("Success", "Recipe updated successfully.")
+            self.refresh_recipes()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to update recipe: {e}")
+
 
     def add_allergen(self):
         ingredient_name = simpledialog.askstring("Input", "What is the ingredient name?")
