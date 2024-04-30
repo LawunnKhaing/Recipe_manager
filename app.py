@@ -9,7 +9,7 @@ class RecipeApp:
 
         # Connect to the database
         self.conn = psycopg2.connect(
-            dbname="recipes",
+            dbname="recipetest",
             user="Lawunn",
             host="localhost"
         )
