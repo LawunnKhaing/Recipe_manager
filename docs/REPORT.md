@@ -36,7 +36,7 @@ This report examines the application of SQL in structuring relational databases 
 3. [SQL Queries used in postgres database](#sql-queries-used-in-postgres-database)
    - [Delete Recipe](#delete-recipe)
    - [Update Recipe](#update-recipe)
-
+4. [Conclusion]
 
    
 ## Database Schema Overview
@@ -167,7 +167,7 @@ INSERT INTO recipe_hardware (recipe_id, hardware_id) VALUES (1, 1), (2, 1), (3, 
 ```
 
 ### ER-Diagram 
-  ![ER Diagram](./docs/er-diagram.png)
+  ![ER Diagram](./docs/ERdiagram.png)
 
 
 
@@ -264,44 +264,24 @@ DELETE FROM recipes WHERE id = 3;
 
 ### Update Recipe
 
-To update a recipe, we typically use the UPDATE statement:
+To update a recipe details, we typically use the UPDATE statement, for example:
 
 ```sql
-UPDATE recipes
-SET title = %s,
-    cooking_time = %s,
-    ingredients = %s,
-    instructions = %s,
-    cooking_hardware = %s,
-    category = %s
-WHERE title = %s;
+UPDATE recipes 
+SET cooking_time = '20', instructions = 'Mix lettuce, croutons, dressing, cheese, and grilled chicken' 
+WHERE title = 'Caesar Salad';
 ```
 
 Here's the breakdown of the query:
 
 - `UPDATE recipes`: Specifies the `recipes` table to be updated.
 - `SET`: Specifies the columns the user wants to update.
-- `WHERE title = %s`: Specifies the condition for which rows should be updated. In this case, it updates the rows where the `title` matches the specified value.
+- `WHERE title `: Specifies the condition for which rows should be updated. In this case, it updates the rows where the `title` matches the specified value.
 
+## Conclusion
 
-
-### Displaying Allergens in a Warning
-
-To display allergens in a warning message, we can use the following SQL query:
-
-```sql
-SELECT allergens FROM ingredients WHERE name = %s;
-```
-
-Here's the breakdown of the query:
-
-- `SELECT allergens`: Selects the `allergens` column from the `ingredients` table.
-- `FROM ingredients`: Specifies the `ingredients` table from which to retrieve data.
-- `WHERE name = %s`: Specifies the condition for which rows to select. In this case, it selects the row where the `name` of the igredeient matches the specified value.
-
-For each ingredient in the recipe, the application checks if there are any associated allergens. If an ingredient is found to have allergens, the application appends a warning to the recipe details.
-
----
+In conclusion, this project establishes a robust database schema for managing recipes, ingredients, cooking hardware, and categories. Through the use of junction tables and foreign key constraints, it ensures data integrity and facilitates efficient retrieval of recipe-related information. The provided SQL queries enable seamless insertion, updating, and deletion of data, empowering users to maintain and expand the recipe database with ease.
 
 This document was created from the `docs/REPORT.md` from this
 [github repository](https://github.com/LawunnKhaing/Recipe_manager/tree/main).
+
