@@ -26,9 +26,9 @@ This report examines the application of SQL in structuring relational databases 
    - [Creation of Table](#creation-of-tables)
    - [Explanation of Columns](#explanation-of-columns)
    - [Inserting Data](#ingredients-table)
-   - [Updating and Deleting](#)
    - [ER-Diagram](#er-diagram)
 2. [SQL Commands and Queries with Python](#sql-commands-and-queries-with-python)
+   - [Search Recipes]()
    - [Searching Recipes by Ingredient](#searching-recipes-by-ingredient)
    - [Searching Recipes by Category](#searching-recipes-by-category)
    - [Refresing Recipes](#refresing-recipes)
@@ -141,7 +141,29 @@ CREATE TABLE recipe_hardware (
 
 Here is a sample code of how we can insert data into tables.
 
+```sql
+-- Insert categories
+INSERT INTO categories (name) VALUES ('Desserts'), ('Pizza'), ('Pasta');
 
+-- Insert ingredients
+INSERT INTO ingredients (name, allergens) VALUES ('Flour', NULL), ('Sugar', NULL), ('Eggs', 'Gluten');
+
+-- Insert cooking hardware
+INSERT INTO cooking_hardware (name) VALUES ('Oven'), ('Stove'), ('Mixer');
+
+-- Insert recipes
+INSERT INTO recipes (title, cooking_time, instructions, category_id)
+VALUES ('Chocolate Cake', '60', 'Bake at 350°F for 30 minutes', 1),
+       ('Margherita Pizza', '20', 'Bake at 400°F for 15 minutes', 2),
+       ('Spaghetti Carbonara', '30', 'Boil pasta, fry bacon, mix with egg sauce', 3);
+
+-- Insert recipe-ingredient relationships
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id) VALUES (1, 1), (1, 2), (1, 3);
+
+-- Insert recipe-hardware relationships
+INSERT INTO recipe_hardware (recipe_id, hardware_id) VALUES (1, 1), (2, 1), (3, 2);
+
+```
 
 ### ER-Diagram 
   ![ER Diagram](./docs/er-diagram.png)
@@ -152,23 +174,25 @@ Here is a sample code of how we can insert data into tables.
 
 This part covers the SQL commands and queries used within the Pyton code to interact with the PostgreSQL database and manage data within the Recipe Manage System GUI.
 
+### Search by Recipes
+
+The following query retrieves the title of the recipes from `recipes` table.
+
+```sql
+SELECT title FROM recipes WHERE title = %s
+```
+
 ### Searching Recipes by Ingredient
 
 The following query retrieves the titles of recipes from `recipes` table where ingredients match a specified ingredient:
 
 ```sql
-SELECT r.title
+SELECT DISTINCT r.title
 FROM recipes r
-INNER JOIN i ON r.id=i.recipe_id
-WHERE i.name = %s;
+INNER JOIN recipe_ingredients ri ON r.id = ri.recipe_id
+INNER JOIN ingredients i ON ri.ingredient_id = i.id
+WHERE i.name = %s
 ```
-
-Here's the breakdown of the query:
-
-- `SELECT r.title`: Selects the `title` column from the `recipes` table.
-- `FROM recipes r`: This specifies that the data is being retrieved from the `recipes` table and assigns it an alias `r`.
-- `INNER JOIN ingredients i ON r.id = i.recipe.id`: This clause joins the `recipes` table (`r`) with the `ingredients` (`i`) table based on the condition that the `id` column matches the `recipe_id` column in `ingredients`.
-- `WHERE i.name = %s`: This condition filters the joined result set to only include rows where the `name` column in the `ingredients` table matches the specified ingredient name (represented by %s).
 
 **Note: In Python programming, `%s` is a placeholder used in SQL queries to represent a value that will be provided later due to prevent SQL injection attacks and to make the code more readable and maintainable.**
 
@@ -177,9 +201,10 @@ Here's the breakdown of the query:
 To search recipes based on their category, we utilized a SQL query similar to the one used for ingredient-based searching, as following:
 
 ```sql
-SELECT r.title
+SELECT DISTINCT r.title
 FROM recipes r
-WHERE r.category = %s;
+INNER JOIN categories c ON r.category_id = c.id
+WHERE c.name = %s
 ```
 
 This query retrieves the titles from the `recipes` table where the category matches a specified category value.
