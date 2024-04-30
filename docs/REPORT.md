@@ -167,7 +167,7 @@ INSERT INTO recipe_hardware (recipe_id, hardware_id) VALUES (1, 1), (2, 1), (3, 
 ```
 
 ### ER-Diagram 
-  ![ER Diagram](./docs/ERdiagram.png)
+  ![ER Diagram](./ERdiagram.png)
 
 
 
