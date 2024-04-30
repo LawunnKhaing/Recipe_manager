@@ -28,15 +28,16 @@ This report examines the application of SQL in structuring relational databases 
    - [Inserting Data](#ingredients-table)
    - [ER-Diagram](#er-diagram)
 2. [SQL Commands and Queries with Python](#sql-commands-and-queries-with-python)
-   - [Search Recipes]()
+   - [Search by Recipes](#search-by-recipes)
    - [Searching Recipes by Ingredient](#searching-recipes-by-ingredient)
    - [Searching Recipes by Category](#searching-recipes-by-category)
    - [Refresing Recipes](#refresing-recipes)
-   - [Add Recipe](#add-recipe)
+   - [Add Allergen to an Ingredient](#add-allergen-to-an-ingredient)
+3. [SQL Queries used in postgres database](#sql-queries-used-in-postgres-database)
    - [Delete Recipe](#delete-recipe)
    - [Update Recipe](#update-recipe)
-   - [Add Allergen to an Ingredient](#add-allergen-to-an-ingredient)
-   - [Displaying Allergens in a Warning](#displaying-allergens-in-a-warning)
+
+
    
 ## Database Schema Overview
 
@@ -217,34 +218,49 @@ The following method refreshes the recipe listbox by clearing its contents and f
 SELECT title FROM recipes
 ```
 
-### Add Recipe
+### Add Allergen to an Ingredient
 
-The following SQL query inserts a new recipe into the `recipes` table with the provided details and returns the ID of the inserted recipe:
+To add an allergen to an existing ingredient in the `ingredients` table, first we need to fetch data from ingredients
 
 ```sql
-INSERT INTO recipes (title, cooking_time, ingredients, instructions, cooking_hardware, category)
-VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
+SELECT allergens FROM ingredients WHERE name = %s
 ```
 
-Here's the breakdown of the query:
+After that, if the ingredient exists we can add the allergens:
+Here is the queries how we add:
 
-- `INSERT INTO recipes`: Specifies that we are inserting data into the `recipes` table.
-- `(title, cooking_time, ingredients, instructions, cooking_hardware, category)`: Lists the columns into which we are inserting data.
-- `VALUES (%s, %s, %s, %s, %s, %s)`: Defines that we are providing values for each of the columns listed above.
-- `RETURNING id`: This clause is used to return the ID of the newly inserted row.
+```sql
+UPDATE ingredients SET allergens = %s WHERE name = %s
+```
+
+## SQL queries used in postgres database
 
 ### Delete Recipe
 
-To delete a recipe, we typically use the DELETE statement:
+### Deleting Records in Junction Tables in Many-to-Many Relationships
 
-```sql
-DELETE FROM recipes WHERE title = %s;
+In a many-to-many relationship, such as the one between recipes and ingredients, a junction table is used to associate records from both tables. This junction table typically contains foreign keys that reference the primary keys of the tables involved in the relationship.
+
+In the following schema:
+
+```plaintext
+recipes       recipe_hardware       
+--------      ------------------       
+id (PK)  <--- recipe_id (FK)          
+title           hardware_id (FK)      
+            |
+            |  
+            |  
 ```
 
-Here's the breakdown of the query:
+To delete a recipe, we need to first delete the accociated records from the `recipe_hardware` table that reference the recipe we want to delete. Once those are deleted then we can delete the recipe from the `recipes` table.
 
-- `DELETE FROM recipes`: Specifies that we are deleting data from the `recipes` table.
-- `WHERE title = %s`: Inserts a condition that filters the rows to be deleted, targeting the recipe with a specific title.
+Here is the example:
+
+```sql
+DELETE FROM recipe_hardware WHERE recipe_id = 3;
+DELETE FROM recipes WHERE id = 3;
+```
 
 ### Update Recipe
 
@@ -267,15 +283,7 @@ Here's the breakdown of the query:
 - `SET`: Specifies the columns the user wants to update.
 - `WHERE title = %s`: Specifies the condition for which rows should be updated. In this case, it updates the rows where the `title` matches the specified value.
 
-### Add Allergen to an Ingredient
 
-To add an allergen to an existing ingredient in the `ingredients` table, we can use the UPDATE statement similarly to update a recipe:
-
-```sql
-UPDATE ingredients 
-SET allergens = %s 
-WHERE name = %s;
-```
 
 ### Displaying Allergens in a Warning
 
